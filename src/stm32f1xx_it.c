@@ -41,6 +41,11 @@
 #include "main.h"
 #include "stm32f1xx_it.h"
 #include "FreeRTOSConfig.h"
+#include "max7219.h"
+#include "controls.h"
+
+
+#include "stm32f1xx_ll_spi.h"
 
 /** @addtogroup STM32F1xx_HAL_Examples
   * @{
@@ -171,16 +176,92 @@ void SysTick_Handler(void)
 /*  file (startup_stm32f1xx.s).                                               */
 /******************************************************************************/
 
+ 
 /**
-  * @brief  This function handles PPP interrupt request.
+  * @brief  This function handles SPI1 interrupt request.
   * @param  None
   * @retval None
   */
-/*void PPP_IRQHandler(void)
+void SPI1_IRQHandler(void)
 {
-}*/
+  /* Check RXNE flag value in ISR register */
+  if(LL_SPI_IsActiveFlag_TXE(SPI1))
+  {
+    /* Call function Slave Reception Callback */
+      //SPI1_Tx_Callback();
+  }
+}
 
+/**
+  * @brief  This function handles SPI2 interrupt request.
+  * @param  None
+  * @retval None
+  */
+void SPI2_IRQHandler(void)
+{
+}
 
+#if 0
+/**
+  * @brief  This function handles external line 0 interrupt request.
+  * @param  None
+  * @retval None
+  */
+void EXTI9_5_IRQHandler(void)
+{
+    //controls_gpio_irq();
+    if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_8) == GPIO_PIN_RESET) {
+        HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_8);
+    }
+    if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_9) == GPIO_PIN_RESET) {
+        HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_9);
+    }
+}
+
+void EXTI15_10_IRQHandler(void)
+{
+    if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10) == GPIO_PIN_RESET) {
+        HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
+    }
+    if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_11) == GPIO_PIN_RESET) {
+        HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_11);
+    }
+    if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_12) == GPIO_PIN_RESET) {
+        HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_12);
+    }
+}
+#else
+
+void EXTI0_IRQHandler(void)
+{
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_0);
+}
+
+void EXTI1_IRQHandler(void)
+{
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_1);
+}
+
+void EXTI2_IRQHandler(void)
+{
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_2);
+}
+
+void EXTI3_IRQHandler(void)
+{
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
+}
+
+void EXTI4_IRQHandler(void)
+{
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_4);
+}
+
+void EXTI9_5_IRQHandler(void)
+{
+    HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_5);
+}
+#endif
 /**
   * @}
   */ 

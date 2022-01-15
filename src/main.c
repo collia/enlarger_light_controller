@@ -1,6 +1,6 @@
 /**
   ******************************************************************************
-  * @file    Templates/Src/main.c 
+  * @file    src/main.c
   * @author  MCD Application Team
   * @version V1.5.0
   * @date    14-April-2017
@@ -45,8 +45,22 @@
 #include "stm32f1xx_it.h"
 
 #include "main.h"
+#include "max7219.h"
+#include "controls.h"
 
 #define mainBLINK_PERIOD			( ( TickType_t ) 1000 / portTICK_PERIOD_MS )
+
+
+typedef enum {
+    START_BUTTON = 0,
+    CONTRAST_BUTTON,
+    BRITHNESS_BUTTON,
+    VALUE_ENC_LEFT,
+    VALUE_ENC_RIGHT,
+    NO_BUTTON,
+    MAX_MAIN_MESSAGE
+} main_message_t;
+
 
 /*
  * Configure the hardware
@@ -55,16 +69,29 @@ static void prvSetupHardware( void );
 
 /* The 'check' task as described at the top of this file. */
 static void prvBlinkTask( void *pvParameters );
+static void prvMainTask( void *pvParameters );
+static void prvControlTask( void *pvParameters );
 
+xQueueHandle key_queue;
+xQueueHandle message_queue;
+
+void key_pressed_ISR(uint16_t key)
+{
+    BaseType_t xHigherPriorityTaskWoken;
+
+    /* We have not woken a task at the start of the ISR. */
+    xHigherPriorityTaskWoken = pdFALSE;
+    xQueueSendFromISR( key_queue, &key, &xHigherPriorityTaskWoken );
+}
 
 int main(void)
 {
     /* STM32F103xB HAL library initialization:
       - Configure the Flash prefetch
-      - Systick timer is configured by default as source of time base, but user 
-      can eventually implement his proper time base source (a general purpose 
-      timer for example or other time source), keeping in mind that Time base 
-      duration should be kept 1ms since PPP_TIMEOUT_VALUEs are defined and 
+      - Systick timer is configured by default as source of time base, but user
+      can eventually implement his proper time base source (a general purpose
+      timer for example or other time source), keeping in mind that Time base
+      duration should be kept 1ms since PPP_TIMEOUT_VALUEs are defined and
       handled in milliseconds basis.
       - Set NVIC Group Priority to 4
       - Low Level Initialization
@@ -76,26 +103,37 @@ int main(void)
 
    	/* Set up the clocks and memory interface. */
 	prvSetupHardware();
+    controls_init();
 
-	/* Create the 'check' task, which is also defined within this file. */
+    /* Create the 'check' task, which is also defined within this file. */
 	xTaskCreate( prvBlinkTask, "Blink", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+    xTaskCreate( prvMainTask, "Main", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
+    xTaskCreate( prvControlTask, "Controls", configMINIMAL_STACK_SIZE, NULL, tskIDLE_PRIORITY, NULL );
 
+    key_queue = xQueueCreate( 80, sizeof( uint16_t ) );
+    if( key_queue == NULL )
+    {
+        for(;;);
+    }
+    message_queue = xQueueCreate( 8, sizeof( main_message_t ) );
+    if( message_queue == NULL )
+    {
+        for(;;);
+    }
     /* Start the scheduler. */
 	vTaskStartScheduler();
 
     /* Will only get here if there was insufficient memory to create the idle
     task.  The idle task is created within vTaskStartScheduler(). */
 	for( ;; ) {
-        //    HAL_GPIO_TogglePin(LED1_GPIO_PORT, LED1_PIN);
-        //HAL_Delay(100);
 
     }
-    
+
 }
 
 /**
   * @brief  System Configuration
-  *         The system Clock is configured as follow : 
+  *         The system Clock is configured as follow :
   *            System Clock source            = PLL (HSI)
   *            SYSCLK(Hz)                     = 64000000
   *            HCLK(Hz)                       = 64000000
@@ -112,7 +150,7 @@ static void prvSetupHardware( void )
     RCC_ClkInitTypeDef clkinitstruct = {0};
     RCC_OscInitTypeDef oscinitstruct = {0};
     GPIO_InitTypeDef  GPIO_InitStruct;
-    
+
     /* Configure PLL ------------------------------------------------------*/
     /* PLL configuration: PLLCLK = (HSI / 2) * PLLMUL = (8 / 2) * 16 = 64 MHz */
     /* PREDIV1 configuration: PREDIV1CLK = PLLCLK / HSEPredivValue = 64 / 1 = 64 MHz */
@@ -131,7 +169,7 @@ static void prvSetupHardware( void )
         /* Initialization Error */
         while(1);
     }
-    
+
   /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2
      clocks dividers */
     clkinitstruct.ClockType = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
@@ -147,16 +185,14 @@ static void prvSetupHardware( void )
 
     /* -1- Enable GPIO Clock (to be able to program the configuration registers) */
     LED1_GPIO_CLK_ENABLE();
-    
+
     /* -2- Configure IO in output push-pull mode to drive external LEDs */
     GPIO_InitStruct.Mode  = GPIO_MODE_OUTPUT_PP;
     GPIO_InitStruct.Pull  = GPIO_PULLDOWN;
     GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
-    
+
     GPIO_InitStruct.Pin = LED1_PIN;
     HAL_GPIO_Init(LED1_GPIO_PORT, &GPIO_InitStruct);
-    
-  
 }
 
 /* Described at the top of this file. */
@@ -181,6 +217,98 @@ static void prvBlinkTask( void *pvParameters )
     }
 }
 
+/* Described at the top of this file. */
+static void prvMainTask( void *pvParameters )
+{
+    main_message_t m;
+
+	/* Just to remove the compiler warning about the unused parameter. */
+	( void ) pvParameters;
+
+    screen_init();
+
+    uint8_t bri = 10;
+    uint8_t con = 10;
+    uint8_t time_sec = 10;
+    uint8_t* current_value = &time_sec;
+
+    screen_set_mode(SCREEN_TIME_MODE);
+    screen_set_value(*current_value);
+	for( ;; )
+	{
+        xQueueReceive(message_queue, &( m ), portMAX_DELAY );
+        switch(m) {
+        case START_BUTTON:
+            screen_set_mode(SCREEN_TIME_MODE);
+            current_value = &time_sec;
+            break;
+        case CONTRAST_BUTTON:
+            screen_set_mode(SCREEN_CONTRAST_MODE);
+            current_value = &con;
+            break;
+        case BRITHNESS_BUTTON:
+            screen_set_mode(SCREEN_BRIGHNESS_MODE);
+            current_value = &bri;
+            break;
+        case VALUE_ENC_LEFT:
+            if(*current_value > 0)
+                (*current_value)--;
+            break;
+        case VALUE_ENC_RIGHT:
+            if(*current_value < 100)
+                (*current_value)++;
+            break;
+        default:
+            //Do nothing
+            break;
+        }
+        screen_set_value(*current_value);
+
+    }
+}
+
+/* Described at the top of this file. */
+static void prvControlTask( void *pvParameters )
+{
+
+    uint16_t key;
+    main_message_t m;
+    //bool enc_left_get = false;
+    //bool enc_right_get = false;
+
+	for( ;; )
+	{
+        m = MAX_MAIN_MESSAGE;
+        xQueueReceive(key_queue, &( key ), portMAX_DELAY );
+
+        switch(key) {
+        case BUTTON_BRITHNESS_PIN:
+            m = BRITHNESS_BUTTON;
+            break;
+        case BUTTON_CONTRAST_PIN:
+            m = CONTRAST_BUTTON;
+            break;
+        case BUTTON_START_PIN:
+            m = START_BUTTON;
+            break;
+        case BUTTON_ENCODER_LEFT_PIN:
+            m = VALUE_ENC_RIGHT;
+            break;
+        case BUTTON_ENCODER_RIGHT_PIN:
+            m = VALUE_ENC_LEFT;
+            break;
+        default:
+            //Do nothing
+            break;
+        }
+        if(m != MAX_MAIN_MESSAGE) {
+            xQueueSend(message_queue, ( void * ) &m, ( TickType_t ) 0 );
+        }
+
+    }
+}
+
+
 #ifdef  USE_FULL_ASSERT
 
 /**
@@ -191,7 +319,7 @@ static void prvBlinkTask( void *pvParameters )
   * @retval None
   */
 void assert_failed(uint8_t* file, uint32_t line)
-{ 
+{
   /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 
@@ -201,4 +329,3 @@ void assert_failed(uint8_t* file, uint32_t line)
   }
 }
 #endif
-
