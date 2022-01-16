@@ -39,7 +39,7 @@ env.Append(CCFLAGS = [
     '-mcpu=cortex-m3',
     '-march=armv7-m',
     '-mthumb',
-    '-O0',
+    '-Os',
     '-std=gnu11',
     '-Wall',
     '-g'
@@ -68,11 +68,12 @@ env.Library('lib/libstm32',
                        'build/stm32/stm32f1xx_hal_rcc.c',
                        'build/stm32/stm32f1xx_hal_cortex.c',
                        'build/stm32/stm32f1xx_hal_dma.c',
-                       'build/stm32/stm32f1xx_hal_flash.c',
+                       #'build/stm32/stm32f1xx_hal_flash.c',
                        'build/stm32/stm32f1xx_hal_gpio.c',
-                       'build/stm32/stm32f1xx_hal_pwr.c',
-                       'build/stm32/stm32f1xx_hal_uart.c',
+                       #'build/stm32/stm32f1xx_hal_pwr.c',
+                       #'build/stm32/stm32f1xx_hal_uart.c',
                        'build/stm32/stm32f1xx_hal_spi.c',
+                       'build/stm32/stm32f1xx_hal_tim.c',
                    ])
 
 env.VariantDir('build/freertos/', freertos_path, duplicate=0)
@@ -101,6 +102,7 @@ prg = env.Program(
         'build/src/main.c',
         'build/src/max7219.c',
         'build/src/controls.c',
+        'build/src/ws2812.c',
         'build/src/stm32f1xx_it.c',
         'build/src/system_stm32f1xx.c',
         'build/src/gcc/startup_' + stm_device.lower() + '.s'

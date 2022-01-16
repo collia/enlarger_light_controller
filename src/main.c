@@ -47,6 +47,7 @@
 #include "main.h"
 #include "max7219.h"
 #include "controls.h"
+#include "ws2812.h"
 
 #define mainBLINK_PERIOD			( ( TickType_t ) 1000 / portTICK_PERIOD_MS )
 
@@ -214,6 +215,7 @@ static void prvBlinkTask( void *pvParameters )
 		vTaskDelayUntil( &xLastExecutionTime, ulTicksToWait );
 
         HAL_GPIO_TogglePin(LED1_GPIO_PORT, LED1_PIN);
+        ws2812_update();
     }
 }
 
@@ -226,6 +228,7 @@ static void prvMainTask( void *pvParameters )
 	( void ) pvParameters;
 
     screen_init();
+    ws2812_init();
 
     uint8_t bri = 10;
     uint8_t con = 10;
