@@ -47,7 +47,7 @@
 #include "main.h"
 #include "max7219.h"
 #include "controls.h"
-#include "ws2812.h"
+#include "ws2812_line.h"
 
 #define mainBLINK_PERIOD			( ( TickType_t ) 1000 / portTICK_PERIOD_MS )
 

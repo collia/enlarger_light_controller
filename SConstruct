@@ -102,7 +102,7 @@ prg = env.Program(
         'build/src/main.c',
         'build/src/max7219.c',
         'build/src/controls.c',
-        'build/src/ws2812.c',
+        'build/src/ws2812_line.c',
         'build/src/stm32f1xx_it.c',
         'build/src/system_stm32f1xx.c',
         'build/src/gcc/startup_' + stm_device.lower() + '.s'
