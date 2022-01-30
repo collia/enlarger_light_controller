@@ -217,7 +217,7 @@ void EXTI9_5_IRQHandler(void)
         HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_9);
     }
 }
-
+#else
 void EXTI15_10_IRQHandler(void)
 {
     if(HAL_GPIO_ReadPin(GPIOA, GPIO_PIN_10) == GPIO_PIN_RESET) {
@@ -230,7 +230,6 @@ void EXTI15_10_IRQHandler(void)
         HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_12);
     }
 }
-#else
 
 void EXTI0_IRQHandler(void)
 {

@@ -56,6 +56,10 @@ typedef enum {
     START_BUTTON = 0,
     CONTRAST_BUTTON,
     BRITHNESS_BUTTON,
+    TIME_BUTTON,
+    SAFELIGHT_BUTTON,
+    WHITE_BUTTON,
+    NO_LIGHT,
     VALUE_ENC_LEFT,
     VALUE_ENC_RIGHT,
     NO_BUTTON,
@@ -215,7 +219,7 @@ static void prvBlinkTask( void *pvParameters )
 		vTaskDelayUntil( &xLastExecutionTime, ulTicksToWait );
 
         HAL_GPIO_TogglePin(LED1_GPIO_PORT, LED1_PIN);
-        ws2812_update();
+        //ws2812_update();
     }
 }
 
@@ -241,7 +245,7 @@ static void prvMainTask( void *pvParameters )
 	{
         xQueueReceive(message_queue, &( m ), portMAX_DELAY );
         switch(m) {
-        case START_BUTTON:
+        case TIME_BUTTON:
             screen_set_mode(SCREEN_TIME_MODE);
             current_value = &time_sec;
             break;
@@ -252,6 +256,18 @@ static void prvMainTask( void *pvParameters )
         case BRITHNESS_BUTTON:
             screen_set_mode(SCREEN_BRIGHNESS_MODE);
             current_value = &bri;
+            break;
+        case START_BUTTON:
+            screen_set_mode(SCREEN_EMPTY_MODE);
+            break;
+        case SAFELIGHT_BUTTON:
+            fillLEDcolor(100, 0, 0);
+            break;
+        case WHITE_BUTTON:
+            fillLEDcolor(200, 200, 200);
+            break;
+        case NO_LIGHT:
+            fillLEDcolor(0, 0, 0);
             break;
         case VALUE_ENC_LEFT:
             if(*current_value > 0)
@@ -291,8 +307,25 @@ static void prvControlTask( void *pvParameters )
         case BUTTON_CONTRAST_PIN:
             m = CONTRAST_BUTTON;
             break;
+        case BUTTON_TIME_PIN:
+            m = TIME_BUTTON;
+            break;
         case BUTTON_START_PIN:
             m = START_BUTTON;
+            break;
+        case BUTTON_SAFELIGHT_PIN:
+        case BUTTON_WHITE_PIN:
+            switch(check_white_safe_led_switch()) {
+            case BUTTON_WHITE_PIN:
+                m = WHITE_BUTTON;
+                break;
+            case BUTTON_SAFELIGHT_PIN:
+                m = SAFELIGHT_BUTTON;
+                break;
+            default:
+                m = NO_LIGHT;
+                break;
+            };
             break;
         case BUTTON_ENCODER_LEFT_PIN:
             m = VALUE_ENC_RIGHT;
