@@ -10,8 +10,18 @@
 
 #include "main.h"
 /* Library includes. */
-#include "stm32f1xx_it.h"
-
+#if defined(STM32F407xx)
+#include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal_rcc.h"
+#include "stm32f4xx_ll_exti.h"
+#include "stm32f4xx_ll_spi.h"
+#include "stm32f4xx_ll_bus.h"
+#include "stm32f4xx_ll_system.h"
+#include "stm32f4xx_ll_utils.h"
+#include "stm32f4xx_ll_gpio.h"
+#include "stm32f4xx_ll_pwr.h"
+#include "stm32f4xx_it.h"
+#elif  defined(STM32F103xB)
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_rcc.h"
 #include "stm32f1xx_ll_exti.h"
@@ -21,7 +31,7 @@
 #include "stm32f1xx_ll_utils.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_pwr.h"
-
+#endif
 
 #include "controls.h"
 

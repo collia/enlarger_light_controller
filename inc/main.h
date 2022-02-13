@@ -40,8 +40,13 @@
 #define __MAIN_H
 
 /* Includes ------------------------------------------------------------------*/
+#if defined(STM32F407xx)
+#include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal_rcc.h"
+#elif  defined(STM32F103xB)
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_rcc.h"
+#endif
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/

@@ -42,7 +42,11 @@
 #include "queue.h"
 
 /* Library includes. */
+#if defined(STM32F407xx)
+#include "stm32f4xx_it.h"
+#elif  defined(STM32F103xB)
 #include "stm32f1xx_it.h"
+#endif
 
 #include "main.h"
 #include "max7219.h"

@@ -17,15 +17,30 @@ stm32cubef1_cmsis_path = '../stm32cubef1/Drivers/CMSIS/'
 freertos_path = '../FreeRTOS/Source/'
 freertos_portble_path = '/portable/GCC/ARM_CM3/'
 
-stm_family='STM32F103XB'
-stm_device='STM32F103X6'
+
+stm32cubef4_hal_path = '../stm32cubef4/Drivers/STM32F1xx_HAL_Driver/'
+stm32cubef4_cmsis_path = '../stm32cubef4/Drivers/CMSIS/'
+
+new_generation = False
+
+if not new_generation:
+    stm_family='STM32F103XB'
+    #stm_device='STM32F103X6'
+    stm_device='STM32F103XB'
+    stm32cube_hal_path  = stm32cubef1_hal_path
+    stm32cube_cmsis_path = stm32cubef1_cmsis_path
+else:
+    stm_family='STM32F407xx'
+    stm_device='STM32F407VxTx'
+    stm32cube_hal_path  = stm32cubef4_hal_path
+    stm32cube_cmsis_path = stm32cubef4_cmsis_path
 
 # include locations
 env.Append(CPPPATH = [
     '#inc', 
-    '#' + stm32cubef1_hal_path + 'Inc',
-    '#' + stm32cubef1_cmsis_path+'Include',
-    '#' + stm32cubef1_cmsis_path+'Device/ST/STM32F1xx/Include',
+    '#' + stm32cube_hal_path + 'Inc',
+    '#' + stm32cube_cmsis_path+'Include',
+    '#' + stm32cube_cmsis_path+'Device/ST/STM32F1xx/Include',
     '#' + freertos_path + '/include',
     '#' + freertos_path + freertos_portble_path
     ])
@@ -35,14 +50,27 @@ env.Append(LIBPATH = [
     ])
 
 # compiler flags
-env.Append(CCFLAGS = [
-    '-mcpu=cortex-m3',
-    '-march=armv7-m',
-    '-mthumb',
-    '-Os',
-    '-std=gnu11',
-    '-Wall',
-    '-g'
+if not new_generation:
+    env.Append(CCFLAGS = [
+        '-mcpu=cortex-m3',
+        '-march=armv7-m',
+        '-mthumb',
+        '-Os',
+        '-std=gnu11',
+        '-Wall',
+        '-g',
+        '-DDISABLE_ECHO'
+    ])
+else:
+    env.Append(CCFLAGS = [
+        '-mcpu=cortex-m4',
+        '-march=armv7-m',
+        '-mthumb',
+        '-Os',
+        '-std=gnu11',
+        '-Wall',
+        '-g',
+        '-DDISABLE_ECHO'
     ])
 
 # linker flags
@@ -60,8 +88,10 @@ env.Append(CPPDEFINES = [
 ])
 
 
-env.VariantDir('build/stm32/', stm32cubef1_hal_path+'Src', duplicate=0)
-env.Library('lib/libstm32',
+env.VariantDir('build/stm32/', stm32cube_hal_path+'Src', duplicate=0)
+
+if not new_generation:
+    env.Library('lib/libstm32',
                    [
                        'build/stm32/stm32f1xx_hal.c',
                        'build/stm32/stm32f1xx_hal_gpio.c',
@@ -74,6 +104,21 @@ env.Library('lib/libstm32',
                        #'build/stm32/stm32f1xx_hal_uart.c',
                        'build/stm32/stm32f1xx_hal_spi.c',
                        'build/stm32/stm32f1xx_hal_tim.c',
+                   ])
+else:
+        env.Library('lib/libstm32',
+                   [
+                       'build/stm32/stm32f4xx_hal.c',
+                       'build/stm32/stm32f4xx_hal_gpio.c',
+                       'build/stm32/stm32f4xx_hal_rcc.c',
+                       'build/stm32/stm32f4xx_hal_cortex.c',
+                       'build/stm32/stm32f4xx_hal_dma.c',
+                       #'build/stm32/stm32f4xx_hal_flash.c',
+                       'build/stm32/stm32f4xx_hal_gpio.c',
+                       #'build/stm32/stm32f4xx_hal_pwr.c',
+                       #'build/stm32/stm32f4xx_hal_uart.c',
+                       'build/stm32/stm32f4xx_hal_spi.c',
+                       'build/stm32/stm32f4xx_hal_tim.c',
                    ])
 
 env.VariantDir('build/freertos/', freertos_path, duplicate=0)
