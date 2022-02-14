@@ -38,6 +38,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
 
+#include "stm32f1xx_hal_tim.h"
 /** @addtogroup STM32F1xx_HAL_Examples
   * @{
   */
@@ -92,6 +93,73 @@ void HAL_MspDeInit(void)
 /*void HAL_PPP_MspDeInit(void)
 {*/
 /*}*/
+
+/**
+ * @brief TIM MSP Initialization
+ *        This function configures the hardware resources used in this example:
+ *           - Peripheral's clock enable
+ *           - Peripheral's GPIO Configuration
+ *           - DMA configuration for transmission request by peripheral
+ * @param htim: TIM handle pointer
+ * @retval None
+ */
+void HAL_TIM_PWM_MspInit(TIM_HandleTypeDef *htim) {
+    /*##-1- Enable peripherals and GPIO Clocks #################################*/
+    /* TIMx clock enable */
+    TIMx_CLK_ENABLE();
+
+    /* Enable GPIO Channel Clock */
+    TIMx_CHANNEL3_GPIO_CLK_ENABLE();
+
+    /* Enable DMA clock */
+	DMAx_CLK_ENABLE();
+
+    TIMx_GPIO_TIM2_3_REMAP();
+	/* Configure TIM1_Channel1 in output, push-pull & alternate function mode */
+    GPIO_InitStruct.Pin = GPIO_PIN_CHANNEL1;
+    GPIO_InitStruct.Mode = GPIO_MODE_AF_PP; //GPIO_MODE_OUTPUT_PP
+    GPIO_InitStruct.Pull = GPIO_PULLUP;
+    GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_HIGH;
+
+    HAL_GPIO_Init(TIMx_GPIO_CHANNEL1_PORT, &GPIO_InitStruct);
+
+    /* Set the parameters to be configured */
+    //hdma_tim.Init.Request = TIMx_CC1_DMA_REQUEST;
+    hdma_tim.Init.Direction = DMA_MEMORY_TO_PERIPH;
+    hdma_tim.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma_tim.Init.MemInc = DMA_MINC_ENABLE;
+    hdma_tim.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
+    hdma_tim.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma_tim.Init.Mode = DMA_CIRCULAR;
+    hdma_tim.Init.Priority = DMA_PRIORITY_HIGH;
+
+    /* Set hdma_tim instance */
+    hdma_tim.Instance = TIMx_CC1_DMA_INST;
+
+    /* Link hdma_tim to hdma[TIM_DMA_ID_CC3] (channel3) */
+    __HAL_LINKDMA(htim, hdma[TIMx_DMA_CHANNEL], hdma_tim);
+
+    htim->hdma[TIMx_DMA_CHANNEL]->XferHalfCpltCallback = TIMEx_DMACommutationHalfCplt;
+    /* Initialize TIMx DMA handle */
+    HAL_DMA_Init(htim->hdma[TIMx_DMA_CHANNEL]);
+    htim->hdma[TIMx_DMA_CHANNEL]->XferCpltCallback = TIMEx_DMACommutationCplt;
+    htim->hdma[TIMx_DMA_CHANNEL]->XferErrorCallback = TIMEx_DMAError;
+
+    /*##-2- Configure the NVIC for DMA #########################################*/
+    /* NVIC configuration for DMA transfer complete interrupt */
+    HAL_NVIC_SetPriority(TIMx_DMA_IRQn, 0, 0);
+    HAL_NVIC_EnableIRQ(TIMx_DMA_IRQn);
+}
+
+/**
+  * @brief  DeInitializes the TIM PWM MSP.
+  * @param  htim: TIM handle
+  * @retval None
+  */
+void HAL_TIM_PWM_MspDeInit(TIM_HandleTypeDef *htim)
+{
+
+}
 
 /**
   * @}

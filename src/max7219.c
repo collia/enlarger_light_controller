@@ -9,8 +9,19 @@
 #include "queue.h"
 
 /* Library includes. */
+#if defined(STM32F407xx)
+#include "stm32f4xx_it.h"
+#include "stm32f4xx_hal.h"
+#include "stm32f4xx_hal_rcc.h"
+#include "stm32f4xx_ll_exti.h"
+#include "stm32f4xx_ll_spi.h"
+#include "stm32f4xx_ll_bus.h"
+#include "stm32f4xx_ll_system.h"
+#include "stm32f4xx_ll_utils.h"
+#include "stm32f4xx_ll_gpio.h"
+#include "stm32f4xx_ll_pwr.h"
+#elif  defined(STM32F103xB)
 #include "stm32f1xx_it.h"
-
 #include "stm32f1xx_hal.h"
 #include "stm32f1xx_hal_rcc.h"
 #include "stm32f1xx_ll_exti.h"
@@ -20,7 +31,7 @@
 #include "stm32f1xx_ll_utils.h"
 #include "stm32f1xx_ll_gpio.h"
 #include "stm32f1xx_ll_pwr.h"
-
+#endif
 
 
 #include "max7219.h"
@@ -188,8 +199,11 @@ static void max7219_send_regs_array(const spi_reg_t *reg, uint32_t len) {
   * @param  None
   * @retval None
   */
-static void Configure_SPI1(void)
-{
+#if defined(STM32F407xx)
+static void Configure_SPI1(void) {
+}
+#elif  defined(STM32F103xB)
+static void Configure_SPI1(void) {
     /* PA5 - sck */
     /* PA6 - MISO */
     /* PA7 - MOSI */
@@ -238,6 +252,7 @@ static void Configure_SPI1(void)
   /* Enable SPI1 Error Interrupt */
   //LL_SPI_EnableIT_ERR(SPI1);
 }
+#endif
 
 static void Configure_MAX7219_SP(void) {
     GPIO_InitTypeDef  GPIO_InitStruct;

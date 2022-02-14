@@ -3,8 +3,12 @@
 
 #include <stdio.h>
 #include <string.h>
-#include "stm32f1xx_hal.h"
 
+#if defined(STM32F407xx)
+#include "stm32f4xx_hal.h"
+#elif  defined(STM32F103xB)
+#include "stm32f1xx_hal.h"
+#endif
 /*
  * This code was taken from 
  * http://fabioangeletti.altervista.org/blog/stm32-interface-ws2812b/?doing_wp_cron=1528043483.7364630699157714843750
