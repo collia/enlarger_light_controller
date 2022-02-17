@@ -30,9 +30,11 @@ GPIO_InitTypeDef GPIO_InitStruct;
 DMA_HandleTypeDef hdma_tim;
 
 /* Functions -----------------------------------------------*/
-
+#if  defined(STM32F103xB)
 void TIMEx_DMACommutationHalfCplt(DMA_HandleTypeDef *hdma);
+#endif
 void TIMEx_DMAError(DMA_HandleTypeDef *hdma);
+
 static void update_dma_state();
 
 void ws2812_init(void) {
@@ -137,6 +139,7 @@ void HAL_TIMEx_CommutationCallback(TIM_HandleTypeDef *htim) {
 void HAL_TIMEx_BreakCallback(TIM_HandleTypeDef *htim) {
 }
 
+#if  defined(STM32F103xB)
 void TIMEx_DMACommutationCplt(DMA_HandleTypeDef *hdma) {
     update_dma_state();
 }
@@ -144,7 +147,7 @@ void TIMEx_DMACommutationCplt(DMA_HandleTypeDef *hdma) {
 void TIMEx_DMACommutationHalfCplt(DMA_HandleTypeDef *hdma) {
     //update_dma_state();
 }
-
+#endif
 void TIMEx_DMAError(DMA_HandleTypeDef *hdma) {
 
 }

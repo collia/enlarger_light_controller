@@ -30,12 +30,14 @@ if not new_generation:
     stm_device='STM32F103XB'
     stm32cube_hal_path  = stm32cubef1_hal_path
     stm32cube_cmsis_path = stm32cubef1_cmsis_path
+    bsp_file = 'bsp_rev_0_1.c'
 else:
     stm_platform='stm32f4xx'
     stm_family='STM32F407xx'
     stm_device='STM32F407VxTx'
     stm32cube_hal_path  = stm32cubef4_hal_path
     stm32cube_cmsis_path = stm32cubef4_cmsis_path
+    bsp_file = 'bsp_rev_1_0.c'
 
 # include locations
 env.Append(CPPPATH = [
@@ -76,11 +78,15 @@ else:
     env.Append(CCFLAGS = [
         '-mcpu=cortex-m4',
         '-mthumb',
-        '-Os',
         '-std=gnu11',
         '-Wall',
         '-g',
         '-DDISABLE_ECHO'
+    ])
+
+if new_generation:
+    env.Append(CCFLAGS = [
+        '-DBOARD_REVISION_1_0'
     ])
 
 # linker flags
@@ -129,6 +135,7 @@ else:
                        #'build/stm32/stm32f4xx_hal_uart.c',
                        'build/stm32/stm32f4xx_hal_spi.c',
                        'build/stm32/stm32f4xx_hal_tim.c',
+                       'build/stm32/stm32f4xx_hal_tim_ex.c',
                    ])
 
 env.VariantDir('build/freertos/', freertos_path, duplicate=0)
@@ -159,7 +166,9 @@ prg = env.Program(
         'build/src/controls.c',
         'build/src/ws2812_line.c',
         'build/src/' + stm_platform + '_it.c',
+        'build/src/' + stm_platform + '_hal_msp.c',
         'build/src/system_' + stm_platform + '.c',
+        'build/src/' + bsp_file,
         'build/src/gcc/startup_' + stm_device.lower() + '.s'
     ]
 )

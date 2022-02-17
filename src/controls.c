@@ -37,6 +37,7 @@
 
 
 void controls_init() {
+#if  defined(STM32F103xB)
     GPIO_InitTypeDef  GPIO_InitStruct;
     __HAL_RCC_GPIOA_CLK_ENABLE();
     
@@ -86,6 +87,7 @@ void controls_init() {
 
     HAL_NVIC_SetPriority(EXTI9_5_IRQn, 3, 0);
     HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
+#endif
 }
 
 uint16_t check_white_safe_led_switch() {

@@ -40,22 +40,9 @@
 #define __MAIN_H
 
 /* Includes ------------------------------------------------------------------*/
-#if defined(STM32F407xx)
-#include "stm32f4xx_hal.h"
-#include "stm32f4xx_hal_rcc.h"
-#elif  defined(STM32F103xB)
-#include "stm32f1xx_hal.h"
-#include "stm32f1xx_hal_rcc.h"
-#endif
-
+#include <inttypes.h>
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
-
-#define LED1_PIN                         GPIO_PIN_13             /* PC.13*/
-#define LED1_GPIO_PORT                   GPIOC
-#define LED1_GPIO_CLK_ENABLE()           __HAL_RCC_GPIOC_CLK_ENABLE()
-#define LED1_GPIO_CLK_DISABLE()          __HAL_RCC_GPIOC_CLK_DISABLE()
- 
 
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
