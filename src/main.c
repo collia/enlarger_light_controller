@@ -337,12 +337,12 @@ static void prvControlTask( void *pvParameters )
                 break;
             };
             break;
-        case BUTTON_ENCODER_LEFT_PIN:
+            /*case BUTTON_ENCODER_LEFT_PIN:
             m = VALUE_ENC_RIGHT;
             break;
         case BUTTON_ENCODER_RIGHT_PIN:
             m = VALUE_ENC_LEFT;
-            break;
+            break;*/
         default:
             //Do nothing
             break;

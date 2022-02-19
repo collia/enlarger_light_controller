@@ -71,7 +71,7 @@ void controls_init() {
     GPIO_InitStruct.Pin = BUTTON_WHITE_PIN;
     HAL_GPIO_Init(BUTTON_WHITE_GPIO, &GPIO_InitStruct);
 
-
+#endif
     HAL_NVIC_SetPriority(EXTI15_10_IRQn, 3, 0);
     HAL_NVIC_EnableIRQ(EXTI15_10_IRQn);
     HAL_NVIC_SetPriority(EXTI0_IRQn, 3, 0);
@@ -84,10 +84,6 @@ void controls_init() {
     HAL_NVIC_EnableIRQ(EXTI3_IRQn);
     HAL_NVIC_SetPriority(EXTI4_IRQn, 3, 0);
     HAL_NVIC_EnableIRQ(EXTI4_IRQn);
-
-    HAL_NVIC_SetPriority(EXTI9_5_IRQn, 3, 0);
-    HAL_NVIC_EnableIRQ(EXTI9_5_IRQn);
-#endif
 }
 
 uint16_t check_white_safe_led_switch() {
@@ -113,20 +109,9 @@ void HAL_GPIO_EXTI_Callback (uint16_t GPIO_Pin)
     static TickType_t ticks_prev = 0;
     static uint16_t previous_pin = -1;
 
-    if(GPIO_Pin == BUTTON_ENCODER_LEFT_PIN) {
-        if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(BUTTON_ENCODER_RIGHT_GPIO, BUTTON_ENCODER_RIGHT_PIN)) {
-             key_pressed_ISR(GPIO_Pin);
-        }
-    } else if (GPIO_Pin == BUTTON_ENCODER_RIGHT_PIN) {
-        if(GPIO_PIN_RESET == HAL_GPIO_ReadPin(BUTTON_ENCODER_LEFT_GPIO, BUTTON_ENCODER_LEFT_PIN)) {
-            key_pressed_ISR(GPIO_Pin);
-        }        
-    } else {
-        if(previous_pin != GPIO_Pin || (ticks - ticks_prev > GPIO_FILTER_DELAY_TICKS)) {   
-            key_pressed_ISR(GPIO_Pin);
-            previous_pin = GPIO_Pin ;
-            ticks_prev = ticks;
-        }
-    }
-        
+    if(previous_pin != GPIO_Pin || (ticks - ticks_prev > GPIO_FILTER_DELAY_TICKS)) {   
+        key_pressed_ISR(GPIO_Pin);
+        previous_pin = GPIO_Pin ;
+        ticks_prev = ticks;
+    }   
 }
